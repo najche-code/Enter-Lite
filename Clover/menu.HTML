@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homeland - Sistema de Configuración y Reportes</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos adicionales integrados para las nuevas funciones */
+        .badge-status { padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        .status-online { background-color: #d4edda; color: #155724; }
+        .status-offline { background-color: #f8d7da; color: #721c24; }
+        .permiso-checkbox { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 9.5pt; }
+        .qr-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+        .qr-modal-content { background: white; padding: 30px; border-radius: 12px; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <header class="top-navbar">
+        <div class="toggle-btn">☰</div>
+        <div class="user-profile">Configuración de Sistema ⚙️</div>
+    </header>
+
+    <aside class="main-sidebar">
+        <div class="brand-logo">Homeland<span>.</span></div>
+        <nav class="sidebar-menu">
+            <ul>
+                <li><a href="#" id="menu-onboarding" class="active" onclick="alternarSeccionPrincipal('onboarding')">Configurar tienda</a></li>
+                <li><a href="#" id="menu-accesos" onclick="alternarSeccionPrincipal('accesos')">🔑 Perfiles de Acceso</a></li>
+                <li><a href="#">🔍 Seguimiento</a></li>
+                <li><a href="#" id="menu-reportes" onclick="alternarSeccionPrincipal('reportes')">📊 Reportes</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="content-wrapper">
+        <div class="container-fluid">
+
+            <div id="seccion-onboarding">
+                <div class="action-bar">
+                    <button type="button" class="btn-action" id="btn-modo-crear">➕ Registrar Nuevo Negocio</button>
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="input-buscar-negocio" placeholder="Buscar negocio existente por nombre o NIT...">
+                        <button type="button" class="btn-search-submit" id="btn-ejecutar-busqueda">Buscar</button>
+                    </div>
+                </div>
+                
+                <div class="admin-card">
+                    <div class="card-tabs">
+                        <div class="tab-item active" data-tab="paso-empresa" id="tab-empresa">1. Mi tienda</div>
+                        <div class="tab-item" data-tab="paso-cobros" id="tab-cobros">2. Tickets y Facturas</div>
+                        <div class="tab-item" data-tab="paso-usuarios" id="tab-usuarios">3. Tu equipo</div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="tab-content active" id="paso-empresa">
+                            <h3>Paso 1: Datos de tu negocio</h3>
+                            <p class="subtitle">Escribe el nombre de tu tienda y dinos dónde se encuentra para empezar..</p>
+                            
+                            <form id="form-empresa">
+                                <div class="form-group">
+                                    <label>Nombre de la tienda/negocio:</label>
+                                    <input type="text" id="nombre-negocio" placeholder="Ej. Tienda la Dios con nosotros" required>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group col-6">
+                                        <label>Nombre del dueño/encargado:</label>
+                                        <input type="text" id="dueno-nombre" placeholder="Ej. Nohely" required>
+                                    </div>
+                                    <div class="form-group col-6">
+                                        <label>Apellido del dueño/encargado:</label>
+                                        <input type="text" id="dueno-apellido" placeholder="Ej. Ajche" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Teléfono:</label>
+                                    <input type="tel" id="dueno-telefono" pattern="^[0-9+ ]+$" placeholder="Ej. 40041767" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>E-Mail:</label>
+                                    <input type="email" id="dueno-email" placeholder="najche@homeland.com.gt" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>ID Terminal relacionada (Matriz):</label>
+                                    <input type="text" id="terminal-matriz" placeholder="Ej. HML-7482" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>¿solo darás tickets comunes o también necesitas hacer facturas para el SAT?</label>
+                                    <select id="select-factura">
+                                        <option value="no">No</option>
+                                        <option value="si">Sí</option>
+                                    </select>
+                                </div>
+
+                                <div id="campos-facturacion" class="conditional-fields">
+                                    <div class="form-group">
+                                        <label>RFC / NIT Fiscal:</label>
+                                        <input type="text" id="rfc" placeholder="Ej. ABC123456XYZ">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Razón Social:</label>
+                                        <input type="text" id="razon-social" placeholder="Ej. TIENDAS PATITO">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Régimen Fiscal:</label>
+                                        <input type="text" id="regimen" placeholder="Ej. Régimen General">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Código Postal Fiscal:</label>
+                                        <input type="text" id="cp-fiscal" placeholder="Ej. 01010">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>¿Este negocio maneja sucursales u otras agencias?</label>
+                                    <select id="select-sucursal">
+                                        <option value="no">No, operar solo como casa matriz</option>
+                                        <option value="si">Sí, configurar sucursales</option>
+                                    </select>
+                                </div>
+
+                                <div id="seccion-dinamica-sucursales" class="conditional-fields" style="border-left: 3px solid #007bff; padding-left: 15px; margin-top: 15px;">
+                                    <h4 style="font-size: 11pt; color: #007bff; margin-bottom: 10px;">🏢 Agregar Sucursal</h4>
+                                    <div class="form-group">
+                                        <label>Nombre de la Sucursal:</label>
+                                        <input type="text" id="suc-nombre-tienda" placeholder="Ej. Sucursal Zona 10">
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-6">
+                                            <label>Nombre del Encargado:</label>
+                                            <input type="text" id="suc-nombre-encargado" placeholder="Ej. Nohely">
+                                        </div>
+                                        <div class="form-group col-6">
+                                            <label>Apellido del Encargado:</label>
+                                            <input type="text" id="suc-apellido-encargado" placeholder="Ej. Ajche">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Dirección de la Sucursal:</label>
+                                        <input type="text" id="suc-direccion" placeholder="Ej. Avenida Reforma...">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>ID Terminal relacionada para esta sucursal:</label>
+                                        <input type="text" id="suc-terminal" placeholder="Ej. HML-1024">
+                                    </div>
+                                    <button type="button" class="btn-submit" id="btn-guardar-sucursal-lista" style="background-color: #007bff; font-size: 9.5pt; padding: 8px 15px; width: auto;">➕ Registrar Sucursal</button>
+                                    
+                                    <div class="crud-sucursales-container" style="margin-top: 20px;">
+                                        <table class="tabla-crud" style="font-size: 9.5pt;">
+                                            <thead><tr><th>Sucursal</th><th>Encargado</th><th>Terminal ID</th><th>Acciones</th></tr></thead>
+                                            <tbody id="lista-sucursales-crud"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn-submit" style="margin-top: 25px;">Siguiente Paso: Configurar Cobros ➡️</button>
+                            </form>
+                        </div>
+
+                        <div class="tab-content" id="paso-cobros">
+                            <h3>Paso 2: Comprobantes de Venta</h3>
+                            <p class="subtitle">Configura los tickets o facturas que vas a entregar a tus clientes..</p>
+                            <form id="form-cobros">
+                                <div class="form-group">
+                                    <label>Selecciona en qué sucursales los usarás:</label>
+                                    <div class="checkbox-group-container" id="sucursales-checkboxes"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo de Documento a Configurar:</label>
+                                    <select id="select-tipo-documento" required></select>
+                                </div>
+                                
+                                <div id="campos-tiquete" class="document-fields-block">
+                                    <div class="form-group">
+                                        <label>Nombre Comercial en el tiquete:</label>
+                                        <input type="text" id="tiq-nombre-comercial" placeholder="Ej. Tienda El Dios Con Nosotros">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Mensaje de Agradecimiento (Pie de página):</label>
+                                        <input type="text" id="tiq-mensaje" placeholder="Ej. ¡Gracias por su compra, vuelva pronto!">
+                                    </div>
+                                </div>
+
+                                <div id="campos-factura" class="document-fields-block" style="display:none;">
+                                    <h4 style="font-size: 11pt; color: #404040; margin-bottom: 15px;">Datos de Emisión Fiscal</h4>
+                                    <div class="form-row">
+                                        <div class="form-group col-6">
+                                            <label>Serie / Prefijo:</label>
+                                            <input type="text" id="fact-serie" placeholder="Ej. FACTA">
+                                        </div>
+                                        <div class="form-group col-6">
+                                            <label>Correlativo Inicial (Folio):</label>
+                                            <input type="text" id="fact-correlativo" placeholder="Ej. 1" min="1">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn-submit" style="background-color: #28a745;">💾 Guardar Configuración de Cobro</button>
+                            </form>
+                            <button type="button" class="btn-submit" style="margin-top: 25px;" onclick="cambiarPestaña('paso-usuarios')">Siguiente Paso ➡️</button>
+                        </div>
+
+                        <div class="tab-content" id="paso-usuarios">
+                            <h3>Paso 3: ¿Quiénes van a atender tu negocio?</h3>
+                            <p class="subtitle">Registra a las personas que te ayudarán a vender y asígnales un perfil preconfigurado de acceso.</p>
+                            
+                            <div class="document-fields-block" style="background-color: #fdfdfd; margin-bottom: 25px;">
+                                <h4 style="font-size: 11pt; margin-bottom: 15px; color: #495057;">Agregar Cajero/Vendedor</h4>
+                                <form id="form-agregar-usuario-manual">
+                                    <div class="form-row">
+                                        <div class="form-group col-6">
+                                            <label>Nombre:</label>
+                                            <input type="text" id="user-new-nombre" placeholder="Ej. Carlos">
+                                        </div>
+                                        <div class="form-group col-6">
+                                            <label>Apellido:</label>
+                                            <input type="text" id="user-new-apellido" placeholder="Ej. Mendoza">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-6">
+                                            <label>Teléfono:</label>
+                                            <input type="tel" id="user-new-telefono" placeholder="Ej. 55443322">
+                                        </div>
+                                        <div class="form-group col-6">
+                                            <label>Correo Electrónico:</label>
+                                            <input type="email" id="user-new-email" placeholder="carlos@homeland.com">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Perfil de Acceso (Aquí solo lo asignas):</label>
+                                        <select id="user-new-perfil">
+                                            <option value="Administrador">Administrador</option>
+                                            <option value="Vendedor" selected>Vendedor</option>
+                                            <option value="Supervisor">Supervisor de Caja</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn-submit" style="background-color: #28a745; padding: 10px 20px; font-size: 9.5pt;">Agregar a la lista</button>
+                                </form>
+                            </div>
+
+                            <table class="tabla-crud">
+                                <thead><tr><th>Colaborador</th><th>Contacto</th><th>Perfil</th><th style="text-align: center;">tienda</th><th style="text-align: center;">Eliminar</th></tr></thead>
+                                <tbody id="lista-usuarios-crud"></tbody>
+                            </table>
+                            
+                            <button type="button" class="btn-submit" id="btn-finalizar-onboarding" style="margin-top: 30px; background-color: #007bff; width: 100%;">Finalizar Configuración y Generar Código QR ✓</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="seccion-accesos" style="display: none;">
+                <h2>🔑 Panel Global de Perfiles de Acceso</h2>
+                <p class="subtitle">Configura y personaliza las reglas de seguridad generales para cada rol operativo que usarán tus clientes en sus terminales.</p>
+
+                <div class="admin-card" style="padding: 20px;">
+                    <div class="form-row" style="display: flex; gap: 20px;">
+                        <div style="flex: 1; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h4 style="font-size: 11pt; margin-bottom: 12px; color: #1a202c;">1. Elegir Perfil a Editar</h4>
+                            <select id="select-rol-permisos" style="width: 100%; padding: 8px; margin-bottom: 15px;" onchange="cargarPermisosDeRol(this.value)">
+                                <option value="Vendedor">Rol: Vendedor / Cajero</option>
+                                <option value="Supervisor">Rol: Supervisor de Caja</option>
+                                <option value="Administrador">Rol: Administrador Total</option>
+                            </select>
+                            <p style="font-size: 8.5pt; color: #718096; line-height: 1.4;">
+                                💡 <strong>Nota sobre inventarios:</strong> Tal como definimos en el flujo, la app móvil está optimizada para que el inventario y stock inicial de productos sea cargado y autogestionado de forma independiente por el cliente en el dispositivo físico.
+                            </p>
+                        </div>
+                        <div style="flex: 2; background: #fff; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;">
+                            <h4 style="font-size: 11pt; margin-bottom: 12px; color: #1a202c;">2. Permisos del Canal de la Terminal</h4>
+                            <div id="contenedor-checkboxes-permisos">
+                                </div>
+                            <button type="button" class="btn-submit" onclick="alert('¡Estructura matriz de permisos de seguridad actualizada globalmente!')" style="background-color: #28a745; width: auto; font-size: 9pt; padding: 8px 15px; margin-top: 15px;">Guardar Cambios de Seguridad</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="seccion-reportes" style="display: none;">
+                <h2>📊 Panel de Reportes Estadísticos</h2>
+                <p class="subtitle">Monitoreo global de tiendas, transacciones, cobros y estado de hardware.</p>
+
+                <div class="kpi-container">
+                    <div class="kpi-card">
+                        <span class="kpi-title">Empresas Registradas</span>
+                        <span class="kpi-value">12</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-title">Monto Total Transaccionado</span>
+                        <span class="kpi-value" style="color: #28a745;">$345,250.00 MXN</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-title">Terminales Registradas</span>
+                        <span class="kpi-value" style="color: #007bff;" id="kpi-terminales-conteo">1 Terminal</span>
+                    </div>
+                </div>
+
+                <div class="report-card" style="margin-bottom: 25px;">
+                    <div class="report-card-header">
+                        <h4>🛰️ 1. Estado y Monitoreo de Terminales Físicas</h4>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="tabla-crud">
+                            <thead>
+                                <tr>
+                                    <th>Terminal ID</th>
+                                    <th>Tienda / Sucursal Asignada</th>
+                                    <th>Responsable Técnico</th>
+                                    <th>Ubicación Detectada</th>
+                                    <th style="text-align: center;">Batería</th>
+                                    <th style="text-align: center;">Estado Conexión</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-reporte-terminales">
+                                <tr>
+                                    <td><code>HML-9081</code></td>
+                                    <td><strong>Abarrotes El Zócalo</strong> <br><small>Casa Matriz</small></td>
+                                    <td>Juan Hernández</td>
+                                    <td>📍 Centro Histórico, CDMX</td>
+                                    <td style="text-align: center;">🔋 89%</td>
+                                    <td style="text-align: center;"><span class="badge-status status-online">🟢 Online</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="report-card">
+                    <div class="report-card-header">
+                        <h4>📈 2. Reporte de Empresas Configuradas en el Sistema</h4>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="tabla-crud">
+                            <thead>
+                                <tr>
+                                    <th>Nombre del Negocio / Dueño</th>
+                                    <th>Fecha de Configuración</th>
+                                    <th>Última Factura Emitida</th>
+                                    <th style="text-align: right;">Monto Total Transacciones</th>
+                                    <th style="text-align: center;">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Tienda El Dios con Nosotros</strong><br><small>Nohely Ajche</small></td>
+                                    <td>12/Ene/2026</td>
+                                    <td>17/Jun/2026 11:24 AM</td>
+                                    <td style="text-align: right; font-weight: 600;">$124,500.00</td>
+                                    <td style="text-align: center;"><span class="badge" style="background-color: #d4edda; color: #155724;">Activa</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="modal-qr-vinculacion" class="qr-modal">
+        <div class="qr-modal-content">
+            <h3 style="margin-bottom: 10px; color: #1a202c;">🔗 Sincronización Express Completa</h3>
+            <p style="font-size: 9pt; color: #718096; margin-bottom: 20px;">Escanea este código QR desde el canal de tu app móvil para vincular la tienda, sucursales y permisos de inmediato. El catálogo de productos e inventario inicial será creado localmente por el cliente.</p>
+            
+            <div style="border: 2px dashed #cbd5e0; padding: 15px; background: #fff; display: inline-block; border-radius: 8px; margin-bottom: 15px;">
+                <div style="width: 180px; height: 180px; background: #1a202c; border-radius: 6px; position: relative; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;">
+                    <div style="position: absolute; top: 8px; left: 8px; width: 30px; height: 30px; border: 4px solid #fff;"></div>
+                    <div style="position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border: 4px solid #fff;"></div>
+                    <div style="position: absolute; bottom: 8px; left: 8px; width: 30px; height: 30px; border: 4px solid #fff;"></div>
+                    <span style="font-size: 2.5rem;">📱</span>
+                    <span style="font-size: 8px; color: #ff6b00; font-weight: bold; margin-top: 5px;">HOMELAND SYNC</span>
+                </div>
+            </div>
+
+            <div id="contenedor-resumen-tokens" style="text-align: left; background: #f7fafc; padding: 12px; border-radius: 6px; font-size: 9pt; max-height: 150px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+                </div>
+
+            <button type="button" class="btn-submit" style="background-color: #28a745; margin: 0; width: 100%;" onclick="cerrarModalQR()">Finalizar y Abrir Panel</button>
+        </div>
+    </div>
+
+    <script>
+        // Estructuras de memoria
+        let sucursalesCargadas = [];
+        let usuariosSistema = [];
+        
+        const matrizPermisos = {
+            "Vendedor": { ventas: true, abrir_caja: true, devoluciones: false, reportes: false, modificar_precios: false },
+            "Supervisor": { ventas: true, abrir_caja: true, devoluciones: true, reportes: true, modificar_precios: false },
+            "Administrador": { ventas: true, abrir_caja: true, devoluciones: true, reportes: true, modificar_precios: true }
+        };
+
+        const etiquetasPermisos = {
+            ventas: "🛒 Registrar Ventas y Cobrar",
+            abrir_caja: "💰 Apertura y Cierre de Caja Chica",
+            devoluciones: "🔄 Cancelación de Tickets / Devoluciones",
+            reportes: "📊 Ver Historial de Ventas del Turno",
+            modificar_precios: "🏷️ Modificar Precios de Venta al vuelo"
+        };
+
+        // Cambio de Pantallas del Menú Lateral (Sidebar)
+        function alternarSeccionPrincipal(modulo) {
+            const onboarding = document.getElementById('seccion-onboarding');
+            const accesos = document.getElementById('seccion-accesos');
+            const reportes = document.getElementById('seccion-reportes');
+            
+            const mOnboarding = document.getElementById('menu-onboarding');
+            const mAccesos = document.getElementById('menu-accesos');
+            const mReportes = document.getElementById('menu-reportes');
+
+            // Ocultar todas de golpe
+            onboarding.style.display = 'none';
+            accesos.style.display = 'none';
+            reportes.style.display = 'none';
+            mOnboarding.classList.remove('active');
+            mAccesos.classList.remove('active');
+            mReportes.classList.remove('active');
+
+            if (modulo === 'onboarding') {
+                onboarding.style.display = 'block';
+                mOnboarding.classList.add('active');
+            } else if (modulo === 'accesos') {
+                accesos.style.display = 'block';
+                mAccesos.classList.add('active');
+                cargarPermisosDeRol(document.getElementById('select-rol-permisos').value);
+            } else if (modulo === 'reportes') {
+                reportes.style.display = 'block';
+                mReportes.classList.add('active');
+                renderizarReporteTerminales();
+            }
+        }
+
+        // Navegación de pestañas internas en el onboarding (3 Pasos)
+        const botonesTabs = document.querySelectorAll('.tab-item');
+        const contenidosTabs = document.querySelectorAll('.tab-content');
+
+        function cambiarPestaña(idDestino) {
+            botonesTabs.forEach(b => b.classList.remove('active'));
+            contenidosTabs.forEach(c => c.classList.remove('active'));
+            document.getElementById(idDestino).classList.add('active');
+            const botonActivo = document.querySelector(`[data-tab="${idDestino}"]`);
+            if (botonActivo) botonActivo.classList.add('active');
+            
+            if (idDestino === 'paso-cobros') actualizarFlujoCobros();
+            if (idDestino === 'paso-usuarios') sincronizarUsuariosAutomáticos();
+        }
+
+        botonesTabs.forEach(boton => {
+            boton.addEventListener('click', () => {
+                const destino = boton.getAttribute('data-tab');
+                cambiarPestaña(destino);
+            });
+        });
+
+        // Paso 1: Condicionales de Factura
+        const selectFactura = document.getElementById('select-factura');
+        const camposFacturacion = document.getElementById('campos-facturacion');
+        selectFactura.addEventListener('change', () => {
+            if (selectFactura.value === 'si') camposFacturacion.classList.add('visible');
+            else camposFacturacion.classList.remove('visible');
+        });
+
+        // Paso 1: Condicionales de Sucursal
+        const selectSucursal = document.getElementById('select-sucursal');
+        const seccionDinSucursales = document.getElementById('seccion-dinamica-sucursales');
+        selectSucursal.addEventListener('change', () => {
+            if (selectSucursal.value === 'si') seccionDinSucursales.classList.add('visible');
+            else seccionDinSucursales.classList.remove('visible');
+        });
+
+        // Guardar sucursal temporal
+        document.getElementById('btn-guardar-sucursal-lista').addEventListener('click', () => {
+            const nameTienda = document.getElementById('suc-nombre-tienda').value.trim();
+            const nameEncargado = document.getElementById('suc-nombre-encargado').value.trim();
+            const apellidoEncargado = document.getElementById('suc-apellido-encargado').value.trim();
+            const dir = document.getElementById('suc-direccion').value.trim();
+            const term = document.getElementById('suc-terminal').value.trim() || 'HML-' + Math.floor(1000 + Math.random() * 9000);
+
+            if (!nameTienda) { alert('Asigne un nombre a la sucursal'); return; }
+
+            sucursalesCargadas.push({
+                id: Date.now(), tienda: nameTienda, nombre: nameEncargado || 'Por asignar',
+                apellido: apellidoEncargado || '', direccion: dir || 'No especificada', terminal: term
+            });
+
+            document.getElementById('suc-nombre-tienda').value = '';
+            document.getElementById('suc-nombre-encargado').value = '';
+            document.getElementById('suc-apellido-encargado').value = '';
+            document.getElementById('suc-direccion').value = '';
+            document.getElementById('suc-terminal').value = '';
+            renderizarTablaSucursales();
+        });
+
+        function renderizarTablaSucursales() {
+            const tbody = document.getElementById('lista-sucursales-crud');
+            tbody.innerHTML = '';
+            sucursalesCargadas.forEach(s => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${s.tienda}</strong><br><small>📍 ${s.direccion}</small></td>
+                        <td>${s.nombre} ${s.apellido}</td>
+                        <td><code>${s.terminal}</code></td>
+                        <td><button type="button" class="btn-crud delete" onclick="eliminarSucursalLista(${s.id})">🗑️</button></td>
+                    </tr>
+                `;
+            });
+        }
+        window.eliminarSucursalLista = (id) => { sucursalesCargadas = sucursalesCargadas.filter(x => x.id !== id); renderizarTablaSucursales(); };
+
+        // Paso 2: Configurar Documentos de Cobros
+        function actualizarFlujoCobros() {
+            const selectTipoDocumento = document.getElementById('select-tipo-documento');
+            selectTipoDocumento.innerHTML = '<option value="tiquete">🎫 Tiquete No Fiscal</option>';
+            if (selectFactura.value === 'si') selectTipoDocumento.innerHTML += '<option value="factura">🧾 Factura (SAT)</option>';
+            selectTipoDocumento.dispatchEvent(new Event('change'));
+
+            const containerCheckboxes = document.getElementById('sucursales-checkboxes');
+            containerCheckboxes.innerHTML = `<label class="checkbox-label"><input type="checkbox" checked> Mi tienda (Matriz)</label>`;
+            sucursalesCargadas.forEach(s => {
+                containerCheckboxes.innerHTML += `<label class="checkbox-label"><input type="checkbox" checked> ${s.tienda}</label>`;
+            });
+        }
+
+        document.getElementById('select-tipo-documento').addEventListener('change', (e) => {
+            const camposTiquete = document.getElementById('campos-tiquete');
+            const camposFactura = document.getElementById('campos-factura');
+            if (e.target.value === 'factura') {
+                camposTiquete.style.display = 'none';
+                camposFactura.style.display = 'block';
+            } else {
+                camposTiquete.style.display = 'block';
+                camposFactura.style.display = 'none';
+            }
+        });
+
+        // Paso 3: Vinculación automática de encargados
+        function sincronizarUsuariosAutomáticos() {
+            usuariosSistema = usuariosSistema.filter(u => u.tipo === 'manual');
+            const dNombre = document.getElementById('dueno-nombre').value;
+            const dApellido = document.getElementById('dueno-apellido').value;
+            
+            if(dNombre) {
+                usuariosSistema.unshift({
+                    id: 'dueno', nombre: dNombre, apellido: dApellido,
+                    telefono: document.getElementById('dueno-telefono').value || '---',
+                    email: document.getElementById('dueno-email').value || '---',
+                    perfil: 'Administrador', tipo: 'auto', tienda: 'Mi tienda'
+                });
+            }
+            sucursalesCargadas.forEach(suc => {
+                usuariosSistema.push({
+                    id: 'suc-' + suc.id, nombre: suc.nombre, apellido: suc.apellido,
+                    telefono: '---', email: '---', perfil: 'Vendedor', tipo: 'auto', tienda: suc.tienda
+                });
+            });
+            renderizarTablaUsuarios();
+        }
+
+        document.getElementById('form-agregar-usuario-manual').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nom = document.getElementById('user-new-nombre').value.trim();
+            if(!nom) return;
+
+            usuariosSistema.push({
+                id: 'manual-' + Date.now(), nombre: nom, apellido: document.getElementById('user-new-apellido').value,
+                telefono: document.getElementById('user-new-telefono').value || '---', email: document.getElementById('user-new-email').value || '---',
+                perfil: document.getElementById('user-new-perfil').value, tipo: 'manual', tienda: 'Manual'
+            });
+            document.getElementById('form-agregar-usuario-manual').reset();
+            renderizarTablaUsuarios();
+        });
+
+        function renderizarTablaUsuarios() {
+            const tbody = document.getElementById('lista-usuarios-crud');
+            tbody.innerHTML = '';
+            usuariosSistema.forEach(u => {
+                const isAdmin = u.perfil === 'Administrador' ? 'selected' : '';
+                const isVendedor = u.perfil === 'Vendedor' ? 'selected' : '';
+                const isSupervisor = u.perfil === 'Supervisor' ? 'selected' : '';
+                const botonEliminar = u.tipo === 'manual' 
+                    ? `<button type="button" class="btn-crud delete" onclick="eliminarUsuarioManual('${u.id}')">🗑️</button>`
+                    : `<span style="color:#a0aec0;">🔒</span>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${u.nombre} ${u.apellido}</strong></td>
+                        <td><small>📞 ${u.telefono}<br>✉️ ${u.email}</small></td>
+                        <td>
+                            <select onchange="actualizarPerfilEnMemoria('${u.id}', this.value)" style="padding: 5px;">
+                                <option value="Administrador" ${isAdmin}>Administrador</option>
+                                <option value="Vendedor" ${isVendedor}>Vendedor</option>
+                                <option value="Supervisor" ${isSupervisor}>Supervisor</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;"><span class="badge" style="background-color:#e2e8f0; color:#4a5568;">${u.tienda}</span></td>
+                        <td style="text-align: center;">${botonEliminar}</td>
+                    </tr>
+                `;
+            });
+        }
+        window.actualizarPerfilEnMemoria = (id, perfil) => { const u = usuariosSistema.find(x=>x.id===id); if(u) u.perfil = perfil; };
+        window.eliminarUsuarioManual = (id) => { usuariosSistema = usuariosSistema.filter(x=>x.id!==id); renderizarTablaUsuarios(); };
+
+        // CONTROL DE PERMISOS GLOBAL (Pantalla Independiente)
+        function cargarPermisosDeRol(rol) {
+            const contenedor = document.getElementById('contenedor-checkboxes-permisos');
+            contenedor.innerHTML = '';
+            const permisosDelRol = matrizPermisos[rol];
+
+            for (const key in permisosDelRol) {
+                const checked = permisosDelRol[key] ? 'checked' : '';
+                contenedor.innerHTML += `
+                    <label class="permiso-checkbox">
+                        <input type="checkbox" id="perm-${key}" ${checked} onchange="actualizarPermisoEnMatriz('${rol}', '${key}', this.checked)">
+                        ${etiquetasPermisos[key]}
+                    </label>
+                `;
+            }
+        }
+        function actualizarPermisoEnMatriz(rol, permiso, valor) { matrizPermisos[rol][permiso] = valor; }
+
+        // TELEMETRÍA DE HARDWARE EN REPORTES
+        function renderizarReporteTerminales() {
+            const tbody = document.getElementById('tabla-reporte-terminales');
+            const tMatrizId = document.getElementById('terminal-matriz').value || 'HML-7482';
+            const tiendaNombre = document.getElementById('nombre-negocio').value || 'Tienda El Dios con Nosotros';
+            const encargadoMatriz = document.getElementById('dueno-nombre').value || 'Nohely Ajche';
+
+            tbody.innerHTML = `
+                <tr>
+                    <td><code>${tMatrizId}</code></td>
+                    <td><strong>${tiendaNombre}</strong> <br><small>🏠 Casa Matriz</small></td>
+                    <td>${encargadoMatriz}</td>
+                    <td>📍 Ubicación Matriz (Vía IP)</td>
+                    <td style="text-align: center;">🔋 95%</td>
+                    <td style="text-align: center;"><span class="badge-status status-online">🟢 Online</span></td>
+                </tr>
+            `;
+
+            sucursalesCargadas.forEach((s, index) => {
+                const alt = index % 2 === 0;
+                tbody.innerHTML += `
+                    <tr>
+                        <td><code>${s.terminal}</code></td>
+                        <td><strong>${s.tienda}</strong> <br><small>🏢 Sucursal</small></td>
+                        <td>${s.nombre} ${s.apellido}</td>
+                        <td>📍 ${s.direccion}</td>
+                        <td style="text-align: center;">🔋 ${alt ? '64%' : '12%'}</td>
+                        <td style="text-align: center;">
+                            <span class="badge-status ${alt ? 'status-online' : 'status-offline'}">
+                                ${alt ? '🟢 Online' : '🔴 Offline'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('kpi-terminales-conteo').textContent = (1 + sucursalesCargadas.length) + " Terminales";
+        }
+
+        // ACCIONES DE FORMULARIOS DEL ONBOARDING
+        document.getElementById('form-empresa').addEventListener('submit', (e) => { e.preventDefault(); cambiarPestaña('paso-cobros'); });
+        document.getElementById('form-cobros').addEventListener('submit', (e) => { e.preventDefault(); alert('Cobros Guardados'); cambiarPestaña('paso-usuarios'); });
+
+        // FINALIZACIÓN: Compilar datos de los 3 pasos en el QR sin inventario
+        document.getElementById('btn-finalizar-onboarding').addEventListener('click', () => {
+            const modal = document.getElementById('modal-qr-vinculacion');
+            const resumenContainer = document.getElementById('contenedor-resumen-tokens');
+            
+            const tienda = document.getElementById('nombre-negocio').value || 'Sin Nombre';
+            const tMatriz = document.getElementById('terminal-matriz').value || 'HML-7482';
+
+            let htmlResumen = `<strong>Comercio:</strong> ${tienda}<br>`;
+            htmlResumen += `📱 <strong>Terminal Matriz ID:</strong> <code>${tMatriz}</code><br><br>`;
+            
+            if(sucursalesCargadas.length > 0) {
+                htmlResumen += `<strong>Sucursales vinculadas:</strong><br>`;
+                sucursalesCargadas.forEach(s => { htmlResumen += `• ${s.tienda} ➔ ID: <code>${s.terminal}</code><br>`; });
+            } else {
+                htmlResumen += `<em>Sin sucursales secundarias registradas.</em>`;
+            }
+
+            resumenContainer.innerHTML = htmlResumen;
+            modal.style.display = 'flex';
+        });
+
+        function cerrarModalQR() {
+            document.getElementById('modal-qr-vinculacion').style.display = 'none';
+            alternarSeccionPrincipal('reportes');
+        }
+    </script>
+</body>
+</html>

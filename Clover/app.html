@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homeland App - Sistema Completo</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Estilos base adicionales enfocados en la experiencia Móvil/App */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f4f6f8; color: #333; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+        
+        /* BARRA SUPERIOR DE LA APP */
+        .app-header { background-color: #ffffff; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); color: #1a202c; position: relative; z-index: 10; }
+        .menu-toggle-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #333; }
+        .app-title { font-weight: bold; font-size: 1.2rem; }
+        .header-placeholder { width: 24px; }
+
+        /* MENÚ LATERAL DESLIZANTE (SIDEBAR) */
+        .app-sidebar { position: fixed; top: 0; left: -260px; width: 260px; height: 100%; background-color: #1a202c; color: #fff; transition: left 0.3s ease; z-index: 100; padding: 20px 10px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
+        .app-sidebar.open { left: 0; }
+        .sidebar-brand { font-size: 1.4rem; font-weight: bold; margin-bottom: 30px; text-align: center; border-bottom: 1px solid #2d3748; padding-bottom: 15px; }
+        .sidebar-brand span { color: #FF6B00; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 10px; }
+        .sidebar-menu a { display: block; padding: 12px 15px; color: #cbd5e0; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background-color: #FF6B00; color: #fff; }
+        
+        /* Capa oscura de fondo al abrir menú */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; z-index: 90; }
+        .sidebar-overlay.show { display: block; }
+
+        /* CONTENEDOR PRINCIPAL EN ENFOQUE APP MÓVIL */
+        .app-container { flex: 1; padding: 16px; max-width: 500px; margin: 0 auto; width: 100%; }
+        .app-card { background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        h3 { font-size: 1.2rem; margin-bottom: 6px; color: #2d3748; }
+        .subtitle { font-size: 0.9rem; color: #718096; margin-bottom: 20px; line-height: 1.4; }
+
+        /* Formularios adaptados a móviles */
+        .form-group { margin-bottom: 16px; }
+        .form-row { display: flex; gap: 12px; }
+        .col-6 { flex: 1; }
+        .col-12 { flex: 0 0 100%; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #4a5568; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.95rem; background-color: #fff; transition: border 0.2s; }
+        input:focus, select:focus { outline: none; border-color: #007bff; }
+
+        .oculto { display: none !important; }
+        .visible { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Botones estilo App */
+        .btn-submit { width: 100%; padding: 14px; background-color: #FF6B00; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; text-align: center; display: block; margin-top: 10px; }
+        .btn-add-product { background-color: #007bff; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-submit:active { opacity: 0.9; }
+
+        /* Estilos específicos para la sección de bienvenida/validación */
+        .welcome-box { text-align: center; padding: 10px 0; }
+        .btn-option-welcome { width: 100%; padding: 16px; margin-bottom: 12px; border: 2px solid #e2e8f0; border-radius: 10px; background: #fff; font-size: 1rem; font-weight: bold; color: #2d3748; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; }
+        .btn-option-welcome:hover { border-color: #FF6B00; background-color: #fff7ed; }
+        .btn-option-welcome span.arrow { color: #FF6B00; font-size: 1.2rem; }
+
+        /* ANIMACIÓN DE VINCULACIÓN / LOADING SIMULADO */
+        .loading-box { text-align: center; padding: 30px 10px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #FF6B00; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* MODAL */
+        .modal-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 200; display: none; opacity: 0; transition: opacity 0.2s ease; padding: 16px; }
+        .modal-container.show { display: flex; opacity: 1; }
+        .modal-content { background: #fff; width: 100%; max-width: 450px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #a0aec0; }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* CRUD / TABLAS */
+        .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 10px; }
+        .tabla-crud { width: 100%; border-collapse: collapse; font-size: 0.85rem; background: #fff; }
+        .tabla-crud th, .tabla-crud td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+        .tabla-crud th { background-color: #f7fafc; font-weight: bold; color: #4a5568; }
+        .btn-action { background: #edf2f7; border: 1px solid #cbd5e0; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; margin-right: 4px; }
+        .btn-action.danger { background-color: #fff5f5; color: #e53e3e; border-color: #fed7d7; }
+
+        /* Cuadro de totales de venta y reportes */
+        .sale-summary { background: #f7fafc; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #e2e8f0; }
+        .sale-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
+        .sale-total { font-size: 1.2rem; font-weight: bold; color: #2d3748; border-top: 1px dashed #cbd5e0; padding-top: 8px; margin-top: 8px; }
+
+        /* NUEVOS ESTILOS PARA PUNTO DE VENTA (Venta ágil) */
+        .lista-items-venta { display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; margin-top: 10px; padding-right: 4px; }
+        .item-tarjeta-venta { display: flex; align-items: center; justify-content: space-between; background: #fafafa; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+        .item-tarjeta-venta:hover { background: #f0fdf4; border-color: #bbf7d0; }
+        
+        .floating-cart-bar { background: #1a202c; color: white; padding: 14px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; cursor: pointer; font-weight: bold; }
+        .floating-cart-bar:active { opacity: 0.9; }
+        
+        .ticket-box { background: #fffdf5; border: 1px dashed #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+
+        .app-section { display: none; }
+        .app-section.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="app-sidebar" id="appSidebar">
+        <div class="sidebar-brand">Homeland<span>.</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="#" id="menu-negocio" onclick="cambiarModulo('negocio')">🏢 Mi tienda</a></li>
+            <li><a href="#" id="menu-productos" onclick="cambiarModulo('productos')">📦 Lista de Productos</a></li>
+            <li><a href="#" id="menu-ventas" onclick="cambiarModulo('ventas')">💰 Ventas</a></li>
+            <li><a href="#" id="menu-reportes" onclick="cambiarModulo('reportes')">📊 Reportes de Ventas</a></li>
+        </ul>
+    </aside>
+
+    <header class="app-header">
+        <button class="menu-toggle-btn" id="menuToggle" style="display:none;">☰</button>
+        <div class="app-title" id="headerTitle">Bienvenido a Homeland</div>
+        <div class="header-placeholder"></div>
+    </header>
+
+    <div class="app-container">
+
+        <div id="seccion-validacion" class="app-section active">
+            <div id="caja-opciones-bienvenida" class="app-card welcome-box">
+                <h2 style="margin-bottom: 10px; color: #1a202c;">¡Hola! 👋</h2>
+                <p class="subtitle">Antes de configurar esta terminal, por favor indícanos el estado de tu comercio:</p>
+                
+                <button class="btn-option-welcome" onclick="flujoValidacionTienda('si')">
+                    <div>
+                        <p style="font-size: 1rem; color:#1a202c;">Sí, ya tengo una tienda registrada</p>
+                        <small style="font-weight: normal; color:#718096;">Vincular esta terminal a una tienda existente.</small>
+                    </div>
+                    <span class="arrow">➔</span>
+                </button>
+
+                <button class="btn-option-welcome" onclick="flujoValidacionTienda('no')">
+                    <div>
+                        <p style="font-size: 1rem; color:#1a202c;">No, soy un negocio nuevo</p>
+                        <small style="font-weight: normal; color:#718096;">Registrar una cuenta de tienda desde cero.</small>
+                    </div>
+                    <span class="arrow">➔</span>
+                </button>
+            </div>
+
+            <div class="app-card oculto" id="caja-vincular-tienda">
+                <h3>Buscar Tienda Registrada</h3>
+                <p class="subtitle">Escribe el nombre del negocio para enlazar esta terminal automáticamente.</p>
+                
+                <div class="form-group">
+                    <input type="text" id="input-buscar-tienda" placeholder="🔍 Escribe el nombre de tu tienda (Ej. Tienda la Dios...)">
+                </div>
+
+                <div class="lista-items-venta" id="resultados-busqueda-tiendas" style="max-height: 220px; margin-bottom: 15px;"></div>
+
+                <button type="button" class="btn-submit" onclick="cancelarValidacion()" style="background-color: #718096; margin-top: 5px;">Volver atrás</button>
+            </div>
+
+            <div class="app-card oculto" id="caja-loading-vinculacion">
+                <div class="loading-box">
+                    <div id="animacion-carga-vinculo">
+                        <div class="spinner"></div>
+                        <h3 style="color: #1a202c; margin-bottom: 8px;">🔗 Conectando con el hardware...</h3>
+                        <p style="font-size:0.9rem; color:#718096; margin-bottom: 15px;" id="txt-loading-estado">Leyendo dirección física del dispositivo...</p>
+                    </div>
+
+                    <div id="confirmacion-telefono-whatsapp" class="oculto" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: left; margin-top: 15px;">
+                        <label id="lbl-whatsapp-registrado" style="margin-bottom: 8px; font-weight: normal; font-size: 0.9rem; color:#2d3748; display:block; line-height: 1.4;"></label>
+                        
+                        <div id="contenedor-numero-adicional" class="oculto" style="margin-top: 10px; animation: fadeIn 0.2s;">
+                            <label style="font-size: 0.8rem; color: #718096; font-weight: bold;">Ingresa el número de WhatsApp alternativo:</label>
+                            <input type="tel" id="input-whatsapp-alternativo" placeholder="Ej. +502 51515151" style="padding: 10px; font-size: 0.9rem; margin-top: 4px;">
+                        </div>
+                        
+                        <button type="button" id="btn-enlace-alternativo" onclick="mostrarCampoAlternativo()" style="background: none; border: none; color: #007bff; cursor: pointer; font-size: 0.85rem; padding: 0; margin-top: 5px; text-decoration: underline; display: block;">¿Enviar a un número diferente?</button>
+                        
+                        <button type="button" class="btn-submit" id="btn-confirmar-vinculo" style="margin-top: 15px; padding: 10px; font-size: 0.9rem;">Confirmar y Continuar ✓</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="seccion-negocio" class="app-section">
+            <div class="app-card">
+                <h3>Datos de tu negocio</h3>
+                <p class="subtitle">Escribe el nombre de tu tienda y dinos dónde se encuentra para empezar.</p>
+                
+                <form id="form-empresa">
+                    <div class="form-group">
+                        <label>Nombre de la tienda/negocio:</label>
+                        <input type="text" id="nombre-negocio" placeholder="Ej. Tienda la Dios con nosotros" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Nombre del dueño:</label>
+                            <input type="text" id="dueno-nombre" placeholder="Ej. Nohely" required>
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Apellido del dueño:</label>
+                            <input type="text" id="dueno-apellido" placeholder="Ej. Ajche" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono:</label>
+                        <input type="tel" id="dueno-telefono" placeholder="Ej. +503 51515151" required>
+                    </div>
+                    <div class="form-group">
+                        <label>E-Mail:</label>
+                        <input type="email" id="dueno-email" placeholder="najche@homeland.com.gt" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ID Terminal relacionada:</label>
+                        <input type="text" id="terminal" placeholder="Ej. 123456" required>
+                    </div>
+                    <div class="form-group">
+                        <label>¿Quieres registrar tus productos con nombre y precio?</label>
+                        <select id="select-inventario">
+                            <option value="no">No</option>
+                            <option value="si">Sí</option>
+                        </select>
+                    </div>
+                    <div id="sub-opcion-piezas" class="form-group oculto">
+                        <label>¿Deseas manejar el control de piezas/existencias en tu inventario?</label>
+                        <select id="select-piezas">
+                            <option value="no">No</option>
+                            <option value="si">Sí</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-submit">Guardar y Continuar</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="seccion-productos" class="app-section">
+            <div class="app-card">
+                <h3>Lista de Productos</h3>
+                <p class="subtitle">Registra lo que vendes, cambia precios y revisa cuántas piezas te quedan.</p>
+                <button type="button" class="btn-submit btn-add-product" id="btnAbrirModal">➕ Agregar Producto</button>
+                
+                <div class="table-responsive">
+                    <table class="tabla-crud">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Producto</th>
+                                <th style="text-align: right;">Precio</th>
+                                <th style="text-align: center;">Editar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-productos-crud"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="seccion-ventas" class="app-section">
+            <div class="app-card" id="vista-ventas-catalogo">
+                <h3>Nueva Venta</h3>
+                <p class="subtitle">Toca un producto para agregarlo a la lista de compra.</p>
+
+                <div class="form-group" id="wrapper-buscador-ventas">
+                    <input type="text" id="buscar-producto-venta" placeholder="🔍 Buscar por nombre o código...">
+                </div>
+
+                <div id="wrapper-venta-manual" class="oculto">
+                    <button type="button" class="btn-submit" onclick="abrirModalCantidad('libre', 'Venta Manual Libre', 0)" style="background-color: #007bff; margin-bottom: 15px;">➕ Registrar Producto Manual</button>
+                </div>
+
+                <div class="lista-items-venta" id="contenedor-items-venta"></div>
+
+                <div class="floating-cart-bar" id="barra-ir-carrito" onclick="cambiarAVistaCarrito()">
+                    <span>🛒 Ver Carrito (<span id="cart-qty-badge">0</span>)</span>
+                    <span id="cart-total-badge">$0.00 ></span>
+                </div>
+            </div>
+
+            <div class="app-card oculto" id="vista-ventas-carrito">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3>Tu Carrito</h3>
+                    <button type="button" onclick="regresarACatalogoVentas()" style="background: none; border: none; color: #007bff; font-weight: bold; cursor: pointer;">← Volver</button>
+                </div>
+                <p class="subtitle">Revisa los artículos agregados y procesa el pago.</p>
+
+                <div class="ticket-box">
+                    <div class="table-responsive" style="background: #fff; max-height: 200px;">
+                        <table class="tabla-crud" style="font-size: 0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cant.</th>
+                                    <th>Total</th>
+                                    <th style="text-align: center;">Quitar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-ticket-checkout"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <form id="form-finalizar-venta">
+                    <div class="form-group">
+                        <label>Método de Pago:</label>
+                        <select id="venta-metodo" required>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                        </select>
+                    </div>
+                    
+                    <div id="grupo-efectivo" class="visible">
+                        <div class="form-group">
+                            <label>Efectivo Recibido:</label>
+                            <input type="number" id="venta-pago" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="sale-summary">
+                        <div class="sale-row"><span>Subtotal:</span><span id="txt-subtotal">$0.00</span></div>
+                        <div class="sale-row oculto" id="row-vuelto"><span>Vuelto:</span><span id="txt-vuelto" style="color: #28a745; font-weight: bold;">$0.00</span></div>
+                        <div class="sale-row sale-total"><span>Total a Pagar:</span><span id="txt-total">$0.00</span></div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" style="background-color: #28a745; margin-top: 15px;">Registrar Venta ✓</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="seccion-reportes" class="app-section">
+            <div class="app-card">
+                <h3>Reporte de Ventas Totales</h3>
+                <p class="subtitle">Filtra tus transacciones históricas y gestiona tus tickets emitidos.</p>
+                
+                <div class="form-row" style="margin-bottom: 15px;">
+                    <div class="form-group col-6">
+                        <label>Desde:</label>
+                        <input type="date" id="reporte-desde">
+                    </div>
+                    <div class="form-group col-6">
+                        <label>Hasta:</label>
+                        <input type="date" id="reporte-hasta">
+                    </div>
+                </div>
+                <button type="button" class="btn-submit" onclick="filtrarReportes()" style="background-color: #4a5568; margin-bottom: 20px;">Filtrar Rango</button>
+
+                <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: #4a5568;">Historial de Tickets</h4>
+                <div class="table-responsive">
+                    <table class="tabla-crud">
+                        <thead>
+                            <tr>
+                                <th>Folio / Hora</th>
+                                <th>Productos</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-reportes-crud"></tbody>
+                    </table>
+                </div>
+
+                <div class="sale-summary" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; margin-top: 25px;">
+                    <h4 style="font-size: 1rem; margin-bottom: 12px; color: #166534; border-bottom: 1px dashed #bbf7d0; padding-bottom: 6px;">💰 Resumen de Caja</h4>
+                    <div class="sale-row" style="color: #1e293b;">
+                        <span>💵 Total Efectivo:</span>
+                        <span id="rep-total-efectivo" style="font-weight: 600;">$0.00</span>
+                    </div>
+                    <div class="sale-row" style="color: #1e293b;">
+                        <span>💳 Total Tarjeta:</span>
+                        <span id="rep-total-tarjeta" style="font-weight: 600;">$0.00</span>
+                    </div>
+                    <div class="sale-row sale-total" style="color: #14532d; border-top-color: #bbf7d0;">
+                        <span>🚀 Ingreso Total Neto:</span>
+                        <span id="rep-total-general">$0.00</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-container" id="modalProducto">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin-bottom: 0;">Añadir Producto</h3>
+                <button class="modal-close" id="btnCerrarModal">&times;</button>
+            </div>
+            <form id="form-producto">
+                <div class="form-group"><label>Código de Barras:</label><input type="text" id="prod-codigo" required></div>
+                <div class="form-group"><label>Nombre del Producto:</label><input type="text" id="prod-nombre" required></div>
+                
+                <div class="form-row" id="fila-dinamica-valores">
+                    <div class="form-group col-6" id="contenedor-prod-precio">
+                        <label>Precio de venta:</label>
+                        <input type="number" id="prod-precio" step="0.01" required>
+                    </div>
+                    <div class="form-group col-6" id="contenedor-prod-piezas">
+                        <label>Piezas Disp.:</label>
+                        <input type="number" id="prod-piezas">
+                    </div>
+                </div>
+
+                <div class="form-group"><label>Foto del Producto:</label><input type="file" id="prod-imagen" accept="image/*"></div>
+                <button type="submit" class="btn-submit" style="background-color: #28a745;">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-container" id="modalCantidadVenta">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-cant-titulo" style="margin-bottom: 0;">Cantidad a Vender</h3>
+                <button class="modal-close" onclick="cerrarModalCantidad()">&times;</button>
+            </div>
+            <form id="form-agregar-cantidad">
+                <input type="hidden" id="modal-cant-id">
+                
+                <div id="campos-manuales-libre" class="oculto">
+                    <div class="form-group">
+                        <label>Descripción / Concepto:</label>
+                        <input type="text" id="modal-libre-desc" placeholder="Ej. Venta de abarrotes varios">
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Unitario:</label>
+                        <input type="number" id="modal-libre-precio" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label id="modal-cant-label-stock">Cantidad:</label>
+                    <input type="number" id="modal-cant-input" min="1" value="1" required>
+                </div>
+                <button type="submit" class="btn-submit" style="background-color: #007bff;">Agregar al Carrito 🛒</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS LOCAL SIMULADA EN UN SERVIDOR CENTRAL ---
+        const SERVIDOR_TIENDAS_REGISTRADAS = [
+            {
+                idTienda: 555,
+                nombreNegocio: "Tienda la Dios con nosotros",
+                duenoNombre: "Nohely",
+                duenoApellido: "Ajche",
+                telefono: "+502 55554444",
+                email: "najche@homeland.com.gt",
+                manejaInventario: "si",
+                manejaPiezas: "si",
+                productos: [
+                    { id: 101, codigo: "001", nombre: "Gaseosa Cola 500ml", precio: "1.25", piezas: 50 },
+                    { id: 102, codigo: "002", nombre: "Bolsa de Papas Fritas", precio: "0.75", piezas: 30 },
+                    { id: 103, codigo: "003", nombre: "Leche Entera 1L", precio: "2.10", piezas: 15 }
+                ]
+            },
+            {
+                idTienda: 777,
+                nombreNegocio: "Abarrotes San José",
+                duenoNombre: "Carlos",
+                duenoApellido: "López",
+                telefono: "+502 99998888",
+                email: "clopez@homeland.com.gt",
+                manejaInventario: "si",
+                manejaPiezas: "no",
+                productos: [
+                    { id: 201, codigo: "991", nombre: "Pan Dulce Unidad", precio: "0.25", piezas: null },
+                    { id: 202, codigo: "992", nombre: "Libra de Azúcar", precio: "0.80", piezas: null }
+                ]
+            }
+        ];
+
+        // --- VARIABLES DEL ESTADO DE LA APLICACIÓN ---
+        let inventarioProductos = [];
+        let ticketVentaActual = [];
+        let historialVentas = [];
+        const CODIGO_ADMIN = "1234";
+        let tiendaSeleccionadaTemporal = null;
+
+        // ================= FLUJO INTELIGENTE DE VALIDACIÓN INICIAL =================
+        function flujoValidacionTienda(opcion) {
+            if (opcion === 'no') {
+                // Es un negocio nuevo -> Saltar directo al Formulario Manual
+                document.getElementById('seccion-validacion').className = 'app-section oculto';
+                document.getElementById('menuToggle').style.display = 'block'; 
+                cambiarModulo('negocio');
+            } else {
+                // Ya existe -> Abrir buscador
+                document.getElementById('caja-opciones-bienvenida').className = 'app-card welcome-box oculto';
+                document.getElementById('caja-vincular-tienda').className = 'app-card visible';
+                renderizarResultadosTiendas(SERVIDOR_TIENDAS_REGISTRADAS);
+            }
+        }
+
+        function cancelarValidacion() {
+            document.getElementById('caja-vincular-tienda').className = 'app-card oculto';
+            document.getElementById('caja-opciones-bienvenida').className = 'app-card welcome-box visible';
+        }
+
+        // Buscador reactivo de comercios
+        document.getElementById('input-buscar-tienda').addEventListener('input', function() {
+            const busqueda = this.value.toLowerCase().trim();
+            const filtradas = SERVIDOR_TIENDAS_REGISTRADAS.filter(t => 
+                t.nombreNegocio.toLowerCase().includes(busqueda) || 
+                t.duenoNombre.toLowerCase().includes(busqueda)
+            );
+            renderizarResultadosTiendas(filtradas);
+        });
+
+        function renderizarResultadosTiendas(lista) {
+            const contenedor = document.getElementById('resultados-busqueda-tiendas');
+            contenedor.innerHTML = '';
+            
+            if(lista.length === 0) {
+                contenedor.innerHTML = '<p style="text-align:center; color:#a0aec0; padding:10px;">No se encontraron tiendas registradas.</p>';
+                return;
+            }
+
+            lista.forEach(t => {
+                contenedor.innerHTML += `
+                    <div class="item-tarjeta-venta" onclick="procesarVinculacionAutomatica(${t.idTienda})" style="background:#f8fafc; border-left: 4px solid #FF6B00;">
+                        <div>
+                            <strong style="color:#1a202c;">${t.nombreNegocio}</strong><br>
+                            <small style="color:#718096;">Dueño: ${t.duenoNombre} ${t.duenoApellido}</small>
+                        </div>
+                        <div style="font-size:0.8rem; font-weight:bold; color:#FF6B00;">Vincular 🔗</div>
+                    </div>
+                `;
+            });
+        }
+
+        // PASO 1: Inicia la animación y lee el hardware automáticamente
+        function procesarVinculacionAutomatica(idTienda) {
+            tiendaSeleccionadaTemporal = SERVIDOR_TIENDAS_REGISTRADAS.find(x => x.idTienda === idTienda);
+            if (!tiendaSeleccionadaTemporal) return;
+
+            document.getElementById('caja-vincular-tienda').className = 'app-card oculto';
+            document.getElementById('caja-loading-vinculacion').className = 'app-card visible';
+            
+            const txtEstado = document.getElementById('txt-loading-estado');
+            
+            // Simulación de lectura del hardware físico
+            setTimeout(() => {
+                txtEstado.textContent = "Obteniendo dirección MAC y número de serie...";
+                
+                setTimeout(() => {
+                    // Ocultamos la animación de carga momentáneamente para pedir confirmación telefónica
+                    document.getElementById('animacion-carga-vinculo').className = 'oculto';
+                    
+                    // Tomamos los últimos 4 dígitos del número registrado
+                    const telCompleto = tiendaSeleccionadaTemporal.telefono;
+                    const ultimosDigitos = telCompleto.substring(telCompleto.length - 4);
+                    
+                    document.getElementById('lbl-whatsapp-registrado').innerHTML = `Se enviarán las credenciales de acceso por WhatsApp al número registrado de la tienda que finaliza en <strong>...${ultimosDigitos}</strong>.`;
+                    document.getElementById('confirmacion-telefono-whatsapp').className = 'visible';
+                    
+                    // Asignamos la acción al botón de confirmación
+                    document.getElementById('btn-confirmar-vinculo').onclick = finalizacionFlujoVinculo;
+                }, 1000);
+
+            }, 200);
+        }
+
+        // Despliega el input para un teléfono alternativo
+        function mostrarCampoAlternativo() {
+            document.getElementById('contenedor-numero-adicional').className = 'visible';
+            document.getElementById('btn-enlace-alternativo').className = 'oculto';
+            document.getElementById('input-whatsapp-alternativo').focus();
+        }
+
+        // PASO 2: Simula el envío de credenciales por segundo plano y la base de datos
+        function finalizacionFlujoVinculo() {
+            const txtEstado = document.getElementById('txt-loading-estado');
+            const inputAlt = document.getElementById('input-whatsapp-alternativo').value.trim();
+            
+            // Determinar a qué número se disparará la API
+            const numeroDestinoFinal = inputAlt !== "" ? inputAlt : tiendaSeleccionadaTemporal.telefono;
+
+            // Reactivar la animación de carga
+            document.getElementById('confirmacion-telefono-whatsapp').className = 'oculto';
+            document.getElementById('animacion-carga-vinculo').className = 'visible';
+            
+            txtEstado.textContent = "🚀 Creando usuario seguro en la base de datos...";
+
+            setTimeout(() => {
+                txtEstado.textContent = `📲 Enviando credenciales vía WhatsApp al número: ${numeroDestinoFinal}...`;
+                
+                setTimeout(() => {
+                    // Generar ID único simulando hardware
+                    const idTerminalAutomatico = 'HML-' + Math.floor(1000 + Math.random() * 9000);
+                    completarClonacionServidor(tiendaSeleccionadaTemporal.idTienda, idTerminalAutomatico, numeroDestinoFinal);
+                }, 1800);
+            }, 1200);
+        }
+
+        // PASO 3: Aplica la configuración, guarda, deja sesión abierta por siempre y entra al POS
+        function completarClonacionServidor(idTienda, terminalID, numeroDestino) {
+            const tiendaOrigen = SERVIDOR_TIENDAS_REGISTRADAS.find(x => x.idTienda === idTienda);
+            if (!tiendaOrigen) return;
+
+            // Rellenar formulario maestro automáticamente
+            document.getElementById('nombre-negocio').value = tiendaOrigen.nombreNegocio;
+            document.getElementById('dueno-nombre').value = tiendaOrigen.duenoNombre;
+            document.getElementById('dueno-apellido').value = tiendaOrigen.duenoApellido;
+            document.getElementById('dueno-telefono').value = tiendaOrigen.telefono; 
+            document.getElementById('dueno-email').value = tiendaOrigen.email;
+            document.getElementById('terminal').value = terminalID; 
+            document.getElementById('select-inventario').value = tiendaOrigen.manejaInventario;
+            document.getElementById('select-piezas').value = tiendaOrigen.manejaPiezas;
+
+            if(tiendaOrigen.manejaInventario === 'si') {
+                document.getElementById('sub-opcion-piezas').className = 'form-group visible';
+            }
+
+            // Clonar catálogo de productos
+            inventarioProductos = [...tiendaOrigen.productos];
+            renderizarProductos();
+
+            // Liberar interfaz general de la app
+            document.getElementById('seccion-validacion').className = 'app-section oculto';
+            document.getElementById('menuToggle').style.display = 'block'; 
+            
+            // Notificación final
+            alert(`✓ ¡Dispositivo Vinculado con Éxito!\n\nID Terminal: ${terminalID}\nTienda: "${tiendaOrigen.nombreNegocio}"\n\nLas credenciales de acceso se han enviado al WhatsApp: ${numeroDestino}. La sesión permanecerá abierta de forma permanente.`);
+            
+            cambiarModulo('ventas'); 
+            
+            // Limpieza del flujo
+            document.getElementById('input-whatsapp-alternativo').value = '';
+            document.getElementById('contenedor-numero-adicional').className = 'oculto';
+            document.getElementById('btn-enlace-alternativo').className = 'visible';
+        }
+
+
+        // --- NAVEGACIÓN GENERAL EN MÓVIL ---
+        function cambiarModulo(modulo) {
+            document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            document.getElementById(`seccion-${modulo}`).classList.add('active');
+            document.getElementById(`menu-${modulo}`).classList.add('active');
+            
+            const titulos = { negocio: 'Datos de tu Negocio', productos: 'Crear Productos', ventas: 'Ventas', reportes: 'Reporte de Ventas' };
+            document.getElementById('headerTitle').textContent = titulos[modulo] || 'Homeland App';
+            
+            document.getElementById('appSidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+
+            if(modulo === 'ventas') prepararPantallaVentas();
+            if(modulo === 'reportes') filtrarReportes();
+        }
+
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.getElementById('appSidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('show');
+        });
+        document.getElementById('sidebarOverlay').addEventListener('click', () => {
+            document.getElementById('appSidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        });
+
+        // --- MANEJO DE INVENTARIO Y PIEZAS (CONFIG NEGOCIO) ---
+        const selectInventario = document.getElementById('select-inventario');
+        const selectPiezas = document.getElementById('select-piezas');
+        const subOpcionPiezas = document.getElementById('sub-opcion-piezas');
+
+        selectInventario.addEventListener('change', function() {
+            if(this.value === 'si') {
+                subOpcionPiezas.className = 'form-group visible';
+            } else {
+                subOpcionPiezas.className = 'form-group oculto';
+                selectPiezas.value = 'no';
+            }
+            adaptarModalProductos();
+        });
+
+        selectPiezas.addEventListener('change', adaptarModalProductos);
+
+        function adaptarModalProductos() {
+            const inputPiezas = document.getElementById('prod-piezas');
+            const contenedorPiezas = document.getElementById('contenedor-prod-piezas');
+            const contenedorPrecio = document.getElementById('contenedor-prod-precio');
+            
+            if (selectInventario.value === 'si' && selectPiezas.value === 'si') {
+                contenedorPiezas.className = 'form-group col-6 visible';
+                contenedorPrecio.className = 'form-group col-6';
+                inputPiezas.setAttribute('required', 'true');
+            } else {
+                contenedorPiezas.className = 'form-group oculto';
+                contenedorPrecio.className = 'form-group col-12';
+                inputPiezas.removeAttribute('required');
+                inputPiezas.value = "";
+            }
+        }
+
+        document.getElementById('form-empresa').addEventListener('submit', (e) => { 
+            e.preventDefault(); 
+            alert('Configuración de tienda guardada en el dispositivo.'); 
+            cambiarModulo('productos'); 
+        });
+
+        // --- CRUD DE PRODUCTOS ---
+        const modal = document.getElementById('modalProducto');
+        document.getElementById('btnAbrirModal').addEventListener('click', () => {
+            adaptarModalProductos();
+            modal.classList.add('show');
+        });
+        document.getElementById('btnCerrarModal').addEventListener('click', () => modal.classList.remove('show'));
+
+        document.getElementById('form-producto').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const manejaExistencias = (selectInventario.value === 'si' && selectPiezas.value === 'si');
+            const cantidadPiezas = manejaExistencias ? (parseInt(document.getElementById('prod-piezas').value) || 0) : null;
+
+            inventarioProductos.push({
+                id: Date.now(),
+                codigo: document.getElementById('prod-codigo').value,
+                nombre: document.getElementById('prod-nombre').value,
+                precio: parseFloat(document.getElementById('prod-precio').value).toFixed(2),
+                piezas: cantidadPiezas
+            });
+            this.reset();
+            modal.classList.remove('show');
+            renderizarProductos();
+        });
+
+        function renderizarProductos() {
+            const tbody = document.getElementById('lista-productos-crud');
+            tbody.innerHTML = inventarioProductos.length === 0 ? '<tr><td colspan="4" style="text-align:center; color:#a0aec0;">Aún no tienes productos registrados. ¡Agrega el primero arriba!</td></tr>' : '';
+            inventarioProductos.forEach(p => {
+                const txtDisp = p.piezas !== null ? `${p.piezas} pzas` : 'Infinito (Sin límite de stock)';
+                tbody.innerHTML += `<tr>
+                    <td><div style="width:40px;height:40px;background:#edf2f7;border-radius:6px;display:flex;align-items:center;justify-content:center;">📦</div></td>
+                    <td><strong>${p.nombre}</strong><br><small>Cód: ${p.codigo} | Disp: <strong>${txtDisp}</strong></small></td>
+                    <td style="text-align:right;">$${p.precio}</td>
+                    <td style="text-align:center;"><button class="btn-action danger" onclick="eliminarProducto(${p.id})">🗑️</button></td>
+                </tr>`;
+            });
+        }
+        window.eliminarProducto = (id) => { inventarioProductos = inventarioProductos.filter(x => x.id !== id); renderizarProductos(); };
+
+
+        // ================= PUNTO DE VENTA ÁGIL (VENTAS) =================
+
+        function prepararPantallaVentas() {
+            regresarACatalogoVentas();
+            const quiereInventario = selectInventario.value;
+            
+            if (quierreInventario === 'si' || quiereInventario === 'si') {
+                document.getElementById('wrapper-buscador-ventas').className = 'form-group visible';
+                document.getElementById('wrapper-venta-manual').className = 'oculto';
+                renderizarCatalogoVentas(inventarioProductos);
+            } else {
+                document.getElementById('wrapper-buscador-ventas').className = 'oculto';
+                document.getElementById('wrapper-venta-manual').className = 'visible';
+                document.getElementById('contenedor-items-venta').innerHTML = '<p style="text-align:center; color:#718096; margin-top:20px;">Tienes el inventario inactivo. Agrega conceptos manualmente arriba.</p>';
+            }
+            actualizarBarraFlotanteCarrito();
+        }
+
+        function renderizarCatalogoVentas(lista) {
+            const contenedor = document.getElementById('contenedor-items-venta');
+            if(lista.length === 0) {
+                contenedor.innerHTML = '<p style="text-align:center; color:#a0aec0; margin-top:20px;">No se encontraron productos.</p>';
+                return;
+            }
+            
+            contenedor.innerHTML = '';
+            lista.forEach(p => {
+                const txtStock = p.piezas !== null ? `Stock: ${p.piezas} ud.` : 'Disponible';
+                contenedor.innerHTML += `
+                    <div class="item-tarjeta-venta" onclick="abrirModalCantidad(${p.id}, '${p.nombre}', ${p.precio}, ${p.piezas})">
+                        <div>
+                            <strong style="font-size:0.95rem; color:#2d3748;">${p.nombre}</strong><br>
+                            <small style="color:#718096;">Cód: ${p.codigo} • ${txtStock}</small>
+                        </div>
+                        <div style="font-weight:bold; color:#FF6B00; font-size:1.05rem;">$${p.precio}</div>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('buscar-producto-venta').addEventListener('input', function() {
+            const busqueda = this.value.toLowerCase().trim();
+            const filtrados = inventarioProductos.filter(p => 
+                p.nombre.toLowerCase().includes(busqueda) || 
+                p.codigo.toLowerCase().includes(busqueda)
+            );
+            renderizarCatalogoVentas(filtrados);
+        });
+
+        const modalCant = document.getElementById('modalCantidadVenta');
+        
+        window.abrirModalCantidad = (id, nombre, precio, piezasMax) => {
+            document.getElementById('modal-cant-id').value = id;
+            document.getElementById('modal-cant-input').value = 1;
+            
+            if(id === 'libre') {
+                document.getElementById('modal-cant-titulo').textContent = "Venta Libre";
+                document.getElementById('campos-manuales-libre').className = 'visible';
+                document.getElementById('modal-cant-label-stock').textContent = "Cantidad:";
+                document.getElementById('modal-libre-desc').setAttribute('required', 'true');
+                document.getElementById('modal-libre-precio').setAttribute('required', 'true');
+            } else {
+                document.getElementById('modal-cant-titulo').textContent = nombre;
+                document.getElementById('campos-manuales-libre').className = 'oculto';
+                document.getElementById('modal-libre-desc').removeAttribute('required');
+                document.getElementById('modal-libre-precio').removeAttribute('required');
+                
+                if(piezasMax !== null && piezasMax !== undefined && piezasMax !== "") {
+                    document.getElementById('modal-cant-label-stock').textContent = `Cantidad (Máx. ${piezasMax}):`;
+                    document.getElementById('modal-cant-input').setAttribute('max', piezasMax);
+                } else {
+                    document.getElementById('modal-cant-label-stock').textContent = "Cantidad:";
+                    document.getElementById('modal-cant-input').removeAttribute('max');
+                }
+            }
+            modalCant.classList.add('show');
+        };
+
+        window.cerrarModalCantidad = () => modalCant.classList.remove('show');
+
+        document.getElementById('form-agregar-cantidad').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('modal-cant-id').value;
+            const cant = parseInt(document.getElementById('modal-cant-input').value) || 0;
+            if(cant <= 0) return;
+
+            let nombreProd = "", precioProd = 0, stockMax = null;
+
+            if(id === 'libre') {
+                nombreProd = document.getElementById('modal-libre-desc').value.trim() || "Venta Manual Libre";
+                precioProd = parseFloat(document.getElementById('modal-libre-precio').value) || 0;
+                if(precioProd <= 0) return alert("Ingresa un precio válido.");
+                
+                ticketVentaActual.push({
+                    productoId: 'libre-' + Date.now(),
+                    productoNombre: nombreProd,
+                    cantidad: cant,
+                    precio: precioProd,
+                    total: cant * precioProd
+                });
+            } else {
+                const prod = inventarioProductos.find(x => x.id == id);
+                if(!prod) return;
+
+                nombreProd = prod.nombre;
+                precioProd = parseFloat(prod.precio);
+                stockMax = prod.piezas;
+
+                if(stockMax !== null && cant > stockMax) {
+                    return alert(`No hay suficiente stock. Máximo disponible: ${stockMax}`);
+                }
+
+                const existente = ticketVentaActual.find(x => x.productoId === prod.id);
+                if(existente) {
+                    if(stockMax !== null && (existente.cantidad + cant) > stockMax) {
+                        return alert(`No puedes agregar más. Supera el stock total de ${stockMax}`);
+                    }
+                    existente.cantidad += cant;
+                    existente.total = existente.cantidad * existente.precio;
+                } else {
+                    ticketVentaActual.push({
+                        productoId: prod.id,
+                        productoNombre: nombreProd,
+                        cantidad: cant,
+                        precio: precioProd,
+                        total: cant * precioProd
+                    });
+                }
+            }
+
+            cerrarModalCantidad();
+            actualizarBarraFlotanteCarrito();
+            
+            document.getElementById('modal-libre-desc').value = '';
+            document.getElementById('modal-libre-precio').value = '';
+        });
+
+        function actualizarBarraFlotanteCarrito() {
+            const totalUnidades = ticketVentaActual.reduce((acc, c) => acc + c.cantidad, 0);
+            const totalDinero = ticketVentaActual.reduce((acc, c) => acc + c.total, 0);
+
+            document.getElementById('cart-qty-badge').textContent = totalUnidades;
+            document.getElementById('cart-total-badge').textContent = `$${totalDinero.toFixed(2)} >`;
+        }
+
+        window.cambiarAVistaCarrito = () => {
+            if(ticketVentaActual.length === 0) {
+                alert("Tu carrito está vacío. Agrega productos de la lista primero.");
+                return;
+            }
+            document.getElementById('vista-ventas-catalogo').className = 'app-card oculto';
+            document.getElementById('vista-ventas-carrito').className = 'app-card visible';
+            renderizarItemsCarrito();
+        };
+
+        window.regresarACatalogoVentas = () => {
+            document.getElementById('vista-ventas-carrito').className = 'app-card oculto';
+            document.getElementById('vista-ventas-catalogo').className = 'app-card visible';
+            document.getElementById('buscar-producto-venta').value = '';
+            if(selectInventario.value === 'si') renderizarCatalogoVentas(inventarioProductos);
+        };
+
+        function renderizarItemsCarrito() {
+            const tbody = document.getElementById('items-ticket-checkout');
+            tbody.innerHTML = '';
+            
+            let totalGeneral = 0;
+            ticketVentaActual.forEach((item, index) => {
+                totalGeneral += item.total;
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${item.productoNombre}</strong></td>
+                        <td>${item.cantidad}x</td>
+                        <td><strong>$${item.total.toFixed(2)}</strong></td>
+                        <td style="text-align:center;"><button type="button" class="btn-action danger" style="padding:2px 6px;" onclick="quitarDelCarrito(${index})">✕</button></td>
+                    </tr>
+                `;
+            });
+
+            recalcularMontosCobro(totalGeneral);
+        }
+
+        window.quitarDelCarrito = (index) => {
+            ticketVentaActual.splice(index, 1);
+            actualizarBarraFlotanteCarrito();
+            if(ticketVentaActual.length === 0) {
+                regresarACatalogoVentas();
+            } else {
+                renderizarItemsCarrito();
+            }
+        };
+
+        const ventaMetodo = document.getElementById('venta-metodo');
+        const ventaPago = document.getElementById('venta-pago');
+
+        ventaPago.addEventListener('input', () => {
+            const total = ticketVentaActual.reduce((acc, c) => acc + c.total, 0);
+            recalcularMontosCobro(total);
+        });
+
+        ventaMetodo.addEventListener('change', function() {
+            document.getElementById('grupo-efectivo').className = this.value === 'efectivo' ? 'visible' : 'oculto';
+            const total = ticketVentaActual.reduce((acc, c) => acc + c.total, 0);
+            recalcularMontosCobro(total);
+        });
+
+        function recalcularMontosCobro(total) {
+            document.getElementById('txt-subtotal').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('txt-total').textContent = `$${total.toFixed(2)}`;
+
+            if(ventaMetodo.value === 'efectivo' && total > 0) {
+                const pago = parseFloat(ventaPago.value) || 0;
+                if(pago >= total) {
+                    document.getElementById('row-vuelto').className = "sale-row visible";
+                    document.getElementById('txt-vuelto').textContent = `$${(pago - total).toFixed(2)}`;
+                } else {
+                    document.getElementById('row-vuelto').className = "sale-row oculto";
+                }
+            } else {
+                document.getElementById('row-vuelto').className = "sale-row oculto";
+            }
+        }
+
+        document.getElementById('form-finalizar-venta').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(ticketVentaActual.length === 0) return;
+
+            const total = ticketVentaActual.reduce((acc, c) => acc + c.total, 0);
+            if(ventaMetodo.value === 'efectivo' && (parseFloat(ventaPago.value) || 0) < total) {
+                return alert("El efectivo recibido es menor al monto de cobro.");
+            }
+
+            // Descontar piezas en el inventario si aplica
+            ticketVentaActual.forEach(item => {
+                if(!item.productoId.toString().startsWith('libre')) {
+                    const prod = inventarioProductos.find(x => x.id === item.productoId);
+                    if(prod && prod.piezas !== null) prod.piezas -= item.cantidad;
+                }
+            });
+
+            const resumenTexto = ticketVentaActual.map(x => `${x.cantidad}x ${x.productoNombre}`).join(', ');
+
+            historialVentas.push({
+                folio: 'F-' + (historialVentas.length + 1001),
+                fecha: new Date(),
+                productosDetalle: [...ticketVentaActual],
+                productoNombre: resumenTexto,
+                cantidad: ticketVentaActual.reduce((acc, c) => acc + c.cantidad, 0),
+                total: total,
+                metodo: ventaMetodo.value,
+                estado: 'Activo'
+            });
+
+            ticketVentaActual = [];
+            this.reset();
+            document.getElementById('grupo-efectivo').className = 'visible';
+            
+            renderizarProductos();
+            alert('¡Venta registrada con éxito! ✓');
+            cambiarModulo('reportes');
+        });
+
+
+        // --- REPORTES Y HISTORIAL DE CAJA ---
+        function filtrarReportes() {
+            const tbody = document.getElementById('lista-reportes-crud');
+            tbody.innerHTML = historialVentas.length === 0 ? '<tr><td colspan="4" style="text-align:center; color:#a0aec0;">Sin registros.</td></tr>' : '';
+            
+            const desde = document.getElementById('reporte-desde').value;
+            const hasta = document.getElementById('reporte-hasta').value;
+
+            let acumuladoEfectivo = 0;
+            let acumuladoTarjeta = 0;
+
+            historialVentas.forEach(v => {
+                const fechaVenta = v.fecha.toISOString().split('T')[0];
+                if(desde && fechaVenta < desde) return;
+                if(hasta && fechaVenta > hasta) return;
+
+                if (v.estado === 'Activo') {
+                    if (v.metodo === 'efectivo') acumuladoEfectivo += v.total;
+                    if (v.metodo === 'tarjeta') acumuladoTarjeta += v.total;
+                }
+
+                const stringHora = v.fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const stringFecha = v.fecha.toLocaleDateString();
+                const estiloEstado = v.estado === 'Anulado' ? 'style="color:#e53e3e; text-decoration:line-through;"' : '';
+
+                tbody.innerHTML += `<tr ${estiloEstado}>
+                    <td><strong>${v.folio}</strong><br><small>${stringFecha} ${stringHora}</small></td>
+                    <td>${v.productoNombre}<br><small style="color:#718096; text-transform:capitalize;">💳 ${v.metodo}</small></td>
+                    <td style="font-weight:600;">$${v.total.toFixed(2)}</td>
+                    <td>
+                        <button class="btn-action" onclick="reimprimirTicket('${v.folio}')">🖨️</button>
+                        ${v.estado === 'Activo' ? `<button class="btn-action danger" onclick="anularVenta('${v.folio}')">🚫</button>` : '<span>Anulada</span>'}
+                    </td>
+                </tr>`;
+            });
+
+            document.getElementById('rep-total-efectivo').textContent = `$${acumuladoEfectivo.toFixed(2)}`;
+            document.getElementById('rep-total-tarjeta').textContent = `$${acumuladoTarjeta.toFixed(2)}`;
+            document.getElementById('rep-total-general').textContent = `$${(acumuladoEfectivo + acumuladoTarjeta).toFixed(2)}`;
+        }
+
+        window.reimprimirTicket = (folio) => {
+            alert(`Reimprimiendo ticket para el folio ${folio}... 🖨️`);
+        };
+
+        window.anularVenta = (folio) => {
+            const codigo = prompt("Introduce el código de Administrador para confirmar la anulación:");
+            if (codigo === CODIGO_ADMIN) {
+                const venta = historialVentas.find(x => x.folio === folio);
+                if (venta) {
+                    venta.estado = 'Anulado';
+                    
+                    venta.productosDetalle.forEach(item => {
+                        if (!item.productoId.toString().startsWith('libre')) {
+                            const prod = inventarioProductos.find(x => x.id === item.productoId);
+                            if (prod && prod.piezas !== null) prod.piezas += item.cantidad;
+                        }
+                    });
+                    
+                    alert("Venta anulada con éxito.");
+                    renderizarProductos();
+                    filtrarReportes();
+                }
+            } else {
+                alert("Código incorrecto. No tienes permisos para anular esta venta.");
+            }
+        };
+
+        // Estado inicial de la tabla antes de la validación
+        document.getElementById('lista-productos-crud').innerHTML = '<tr><td colspan="4" style="text-align:center; color:#a0aec0;">Paso previo de validación requerido.</td></tr>';
+    </script>
+</body>
+</html>
